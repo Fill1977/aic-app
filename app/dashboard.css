@@ -1,0 +1,415 @@
+/* ==========================================================================
+   Dashboard AIC — token ereditati dalla landing (palette FM)
+   Registro diverso: qui è uno strumento di lavoro denso, non una vetrina.
+   ========================================================================== */
+
+:root {
+  --bg: #0b0f17;
+  --bg-deep: #070a10;
+  --surface: #141a24;
+  --surface-2: #18202c;
+  --surface-3: #1c2632;
+  --border: #1f2833;
+  --border-soft: rgba(240, 244, 248, 0.07);
+
+  --text: #f0f4f8;
+  --muted: #8a97a8;
+  --dim: #5d6a7a;
+
+  --blu: #057ffa;
+  --ciano: #03d5f6;
+  --grad: linear-gradient(135deg, #057ffa 0%, #03d5f6 100%);
+
+  /* Stati scadenza — soglia fissa 90gg, come da decisione di prodotto */
+  --scaduto: #ff5a6a;
+  --scaduto-bg: rgba(255, 90, 106, 0.12);
+  --imminente: #ffb020;
+  --imminente-bg: rgba(255, 176, 32, 0.12);
+  --ok: #2fd47f;
+  --ok-bg: rgba(47, 212, 127, 0.1);
+
+  --sidebar-w: 236px;
+  --r-sm: 7px;
+  --r-md: 11px;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body), system-ui, sans-serif;
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* --- Shell: sidebar + area principale ------------------------------------ */
+
+.shell { display: flex; min-height: 100vh; }
+
+.sidebar {
+  width: var(--sidebar-w);
+  flex: none;
+  background: var(--bg-deep);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+.sidebar__brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--border);
+  min-height: 61px;
+}
+
+.sidebar__logo {
+  width: 30px; height: 30px;
+  border-radius: 8px;
+  object-fit: contain;
+  background: var(--surface-2);
+  flex: none;
+}
+
+.sidebar__logo--ph {
+  background: var(--grad);
+  display: grid;
+  place-items: center;
+}
+
+.sidebar__org {
+  font-family: var(--font-display), sans-serif;
+  font-weight: 700;
+  font-size: 13.5px;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar__tipo {
+  font-family: var(--font-mono), monospace;
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+.nav { padding: 12px 10px; display: flex; flex-direction: column; gap: 2px; flex: 1; }
+
+.nav__item {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 9px 12px;
+  border-radius: var(--r-sm);
+  color: var(--muted);
+  font-size: 13.5px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  transition: background 0.15s, color 0.15s;
+}
+
+.nav__item:hover { background: var(--surface); color: var(--text); }
+
+.nav__item--active {
+  background: var(--surface-2);
+  color: var(--text);
+  box-shadow: inset 2px 0 0 var(--ciano);
+}
+
+.nav__dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: currentColor; flex: none; opacity: 0.6;
+}
+
+.sidebar__foot {
+  padding: 14px 20px;
+  border-top: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--dim);
+}
+
+/* --- Area principale ----------------------------------------------------- */
+
+.main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+
+.topbar {
+  height: 61px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 26px;
+  gap: 18px;
+  background: rgba(11, 15, 23, 0.7);
+  backdrop-filter: blur(10px);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.topbar h1 {
+  font-family: var(--font-display), sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.content { padding: 24px 26px 60px; }
+
+/* --- Riepilogo stati (le 3 pill di sintesi) ------------------------------ */
+
+.riepilogo { display: flex; gap: 12px; margin-bottom: 22px; flex-wrap: wrap; }
+
+.kpi {
+  flex: 1;
+  min-width: 150px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 15px 18px;
+  background: var(--surface);
+  position: relative;
+  overflow: hidden;
+}
+
+.kpi::before {
+  content: "";
+  position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+}
+.kpi--scaduto::before { background: var(--scaduto); }
+.kpi--imminente::before { background: var(--imminente); }
+.kpi--ok::before { background: var(--ok); }
+
+.kpi__num {
+  font-family: var(--font-mono), monospace;
+  font-size: 27px;
+  font-weight: 600;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.kpi--scaduto .kpi__num { color: var(--scaduto); }
+.kpi--imminente .kpi__num { color: var(--imminente); }
+.kpi--ok .kpi__num { color: var(--ok); }
+
+.kpi__label {
+  font-size: 11.5px;
+  color: var(--muted);
+  margin-top: 5px;
+  letter-spacing: 0.01em;
+}
+
+/* --- Filtri -------------------------------------------------------------- */
+
+.filtri {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.chip {
+  font-size: 12.5px;
+  font-weight: 500;
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.chip:hover { border-color: var(--dim); color: var(--text); }
+.chip--on { background: var(--surface-3); color: var(--text); border-color: var(--ciano); }
+
+.search {
+  flex: 1;
+  min-width: 200px;
+  font-family: inherit;
+  font-size: 13.5px;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 8px 13px;
+}
+.search::placeholder { color: var(--dim); }
+.search:focus { outline: none; border-color: rgba(3, 213, 246, 0.5); }
+
+/* --- Tabella scadenzario ------------------------------------------------- */
+
+.tabella-wrap {
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  overflow: hidden;
+  background: var(--surface);
+}
+
+table.scad { width: 100%; border-collapse: collapse; }
+
+.scad thead th {
+  font-family: var(--font-mono), monospace;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--dim);
+  font-weight: 500;
+  text-align: left;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-deep);
+  white-space: nowrap;
+}
+
+.scad tbody td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-soft);
+  vertical-align: middle;
+}
+.scad tbody tr:last-child td { border-bottom: none; }
+.scad tbody tr { transition: background 0.12s; }
+.scad tbody tr:hover { background: var(--surface-2); }
+
+.cell-nome { font-weight: 600; color: var(--text); font-size: 13.5px; }
+.cell-sub { font-size: 11px; color: var(--dim); margin-top: 2px; }
+.cell-corso { color: var(--muted); font-size: 13px; }
+.cell-agg { font-size: 10.5px; color: var(--ciano); margin-top: 2px; opacity: 0.85; }
+.cell-azienda { font-size: 12.5px; color: var(--muted); }
+
+.cell-scad {
+  font-family: var(--font-mono), monospace;
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.pill--scaduto { color: var(--scaduto); background: var(--scaduto-bg); }
+.pill--imminente { color: var(--imminente); background: var(--imminente-bg); }
+.pill--ok { color: var(--ok); background: var(--ok-bg); }
+.pill--illim { color: var(--muted); background: var(--surface-3); }
+
+.pill__dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+/* --- Stato vuoto e avvisi ------------------------------------------------ */
+
+.vuoto {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--muted);
+}
+.vuoto h3 {
+  font-family: var(--font-display), sans-serif;
+  font-size: 16px;
+  color: var(--text);
+  margin: 0 0 8px;
+}
+
+.avviso {
+  border: 1px solid rgba(255, 90, 106, 0.3);
+  background: var(--scaduto-bg);
+  border-radius: var(--r-md);
+  padding: 14px 18px;
+  margin-bottom: 18px;
+}
+.avviso__titolo { font-size: 13px; font-weight: 600; color: var(--scaduto); }
+.avviso__sub { font-size: 11.5px; color: var(--muted); margin-top: 4px; }
+
+.gate {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  text-align: center;
+}
+.gate__box { max-width: 420px; }
+.gate h1 {
+  font-family: var(--font-display), sans-serif;
+  font-size: 22px;
+  margin: 0 0 10px;
+}
+.gate p { color: var(--muted); font-size: 14px; line-height: 1.6; }
+.gate a { color: var(--ciano); }
+
+@media (max-width: 780px) {
+  .sidebar { position: fixed; left: -100%; z-index: 100; transition: left 0.2s; }
+  .cell-hide-sm { display: none; }
+}
+
+/* --- Sidebar: sezioni in arrivo, utente, logout -------------------------- */
+
+.nav__item--soon { cursor: default; opacity: 0.5; }
+.nav__item--soon:hover { background: none; color: var(--muted); }
+
+.nav__soon {
+  margin-left: auto;
+  font-family: var(--font-mono), monospace;
+  font-size: 8.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--dim);
+  border: 1px solid var(--border);
+  padding: 2px 6px;
+  border-radius: 999px;
+}
+
+.sidebar__user {
+  padding: 14px 16px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sidebar__email {
+  flex: 1;
+  min-width: 0;
+  font-size: 11.5px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar__logout {
+  flex: none;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.sidebar__logout:hover:not(:disabled) {
+  color: var(--scaduto);
+  border-color: rgba(255, 90, 106, 0.4);
+}
+.sidebar__logout:disabled { opacity: 0.5; cursor: default; }
