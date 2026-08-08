@@ -14,6 +14,7 @@ function giorniA(dataStr) {
 
 function statoDi(riga) {
   if (riga.senza_corsi) return "senza";
+  if (riga.senza_visite) return "senzavisita";
   if (riga.illimitato) return "illim";
   const g = giorniA(riga.data_scadenza);
   if (g === null) return "illim";
@@ -31,7 +32,7 @@ function fmtData(dataStr) {
 
 function testoScadenza(riga) {
   if (riga.illimitato) return "illimitata";
-  if (riga.senza_corsi) return "—";
+  if (riga.senza_corsi || riga.senza_visite) return "—";
   const g = giorniA(riga.data_scadenza);
   if (g === null) return "—";
   if (g < 0) return `${Math.abs(g)} gg fa`;
@@ -45,6 +46,7 @@ const LABEL = {
   ok: "Valido",
   illim: "Illimitato",
   senza: "Nessun corso",
+  senzavisita: "Nessuna visita",
 };
 
 export default function Scadenzario({ righe }) {
@@ -57,7 +59,7 @@ export default function Scadenzario({ righe }) {
   );
 
   const conteggi = useMemo(() => {
-    const c = { scaduto: 0, imminente: 0, ok: 0, illim: 0, senza: 0 };
+    const c = { scaduto: 0, imminente: 0, ok: 0, illim: 0, senza: 0, senzavisita: 0 };
     conStato.forEach((r) => { c[r._stato] = (c[r._stato] || 0) + 1; });
     return c;
   }, [conStato]);
@@ -70,6 +72,7 @@ export default function Scadenzario({ righe }) {
         if (filtro === "scadenza" && r._stato !== "imminente") return false;
         if (filtro === "validi" && !["ok", "illim"].includes(r._stato)) return false;
         if (filtro === "senza" && r._stato !== "senza") return false;
+        if (filtro === "senzavisita" && r._stato !== "senzavisita") return false;
         if (query) {
           const blob = `${r.cognome} ${r.nome} ${r.tipologia || ""} ${r.azienda || ""} ${r.mansione || ""}`.toLowerCase();
           if (!blob.includes(query)) return false;
@@ -77,8 +80,7 @@ export default function Scadenzario({ righe }) {
         return true;
       })
       .sort((a, b) => {
-        // scaduti in cima, poi per giorni mancanti crescenti
-        const ordine = { scaduto: 0, imminente: 1, senza: 2, ok: 3, illim: 4 };
+        const ordine = { scaduto: 0, imminente: 1, senza: 2, senzavisita: 3, ok: 4, illim: 5 };
         if (ordine[a._stato] !== ordine[b._stato]) return ordine[a._stato] - ordine[b._stato];
         const ga = giorniA(a.data_scadenza) ?? 99999;
         const gb = giorniA(b.data_scadenza) ?? 99999;
@@ -87,6 +89,7 @@ export default function Scadenzario({ righe }) {
   }, [conStato, filtro, q]);
 
   const senzaCorsi = conteggi.senza;
+  const senzaVisite = conteggi.senzavisita;
 
   return (
     <>
@@ -116,6 +119,17 @@ export default function Scadenzario({ righe }) {
         </div>
       )}
 
+      {senzaVisite > 0 && (
+        <div className="avviso">
+          <div className="avviso__titolo">
+            {senzaVisite} {senzaVisite === 1 ? "lavoratore soggetto" : "lavoratori soggetti"} a sorveglianza sanitaria senza visita medica
+          </div>
+          <div className="avviso__sub">
+            La sorveglianza sanitaria (art. 41 D.Lgs. 81/08) richiede la visita del medico competente.
+          </div>
+        </div>
+      )}
+
       <div className="filtri">
         {[
           ["tutti", "Tutti"],
@@ -123,6 +137,7 @@ export default function Scadenzario({ righe }) {
           ["scadenza", "In scadenza"],
           ["validi", "Validi"],
           ["senza", "Senza corsi"],
+          ["senzavisita", "Senza visita"],
         ].map(([k, label]) => (
           <button
             key={k}
@@ -152,14 +167,14 @@ export default function Scadenzario({ righe }) {
               <tr>
                 <th>Lavoratore</th>
                 <th className="cell-hide-sm">Azienda</th>
-                <th>Corso</th>
+                <th>Adempimento</th>
                 <th style={{ textAlign: "right" }}>Scadenza</th>
                 <th style={{ textAlign: "right" }}>Stato</th>
               </tr>
             </thead>
             <tbody>
               {visibili.map((r, i) => (
-                <tr key={`${r.iscrizione_id ?? "nc"}-${r.lavoratore_id}-${i}`}>
+                <tr key={`${r.iscrizione_id ?? "nc"}-${r.lavoratore_id}-${r._stato}-${i}`}>
                   <td>
                     <div className="cell-nome">
                       {r.cognome} {r.nome}
@@ -174,6 +189,10 @@ export default function Scadenzario({ righe }) {
                       <span className="cell-corso" style={{ color: "var(--scaduto)" }}>
                         Nessun corso
                       </span>
+                    ) : r.senza_visite ? (
+                      <span className="cell-corso" style={{ color: "var(--scaduto)" }}>
+                        Visita medica mancante
+                      </span>
                     ) : (
                       <>
                         <div className="cell-corso">{r.tipologia}</div>
@@ -187,7 +206,7 @@ export default function Scadenzario({ righe }) {
                     )}
                   </td>
                   <td className="cell-scad">
-                    {!r.senza_corsi && !r.illimitato && (
+                    {!r.senza_corsi && !r.senza_visite && !r.illimitato && (
                       <div>{fmtData(r.data_scadenza)}</div>
                     )}
                     <div style={{ color: "var(--dim)", fontSize: "11px" }}>
@@ -195,7 +214,7 @@ export default function Scadenzario({ righe }) {
                     </div>
                   </td>
                   <td style={{ textAlign: "right" }}>
-                    <span className={`pill pill--${r._stato === "senza" ? "scaduto" : r._stato}`}>
+                    <span className={`pill pill--${(r._stato === "senza" || r._stato === "senzavisita") ? "scaduto" : r._stato}`}>
                       <span className="pill__dot" />
                       {LABEL[r._stato]}
                     </span>

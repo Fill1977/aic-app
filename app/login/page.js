@@ -13,9 +13,7 @@ export default function LoginPage() {
   const [errore, setErrore] = useState("");
   const [invio, setInvio] = useState(false);
 
-    async function accedi() {
-    console.log(">>> accedi partito");
-    setErrore("");
+  async function accedi() {
     setErrore("");
     if (!email || !password) {
       setErrore("Inserisci email e password.");
@@ -28,32 +26,7 @@ export default function LoginPage() {
       setInvio(false);
       return;
     }
-    // dopo il login vai alla dashboard; l'org si risolve dal sottodominio
-    // recupera l'org dell'utente per attaccare ?org= (serve in locale, dove
-    // non c'è il sottodominio; in produzione l'org viene dal sottodominio).
-    const { data: userData } = await supabase.auth.getUser();
-    let slug = null;
-    if (userData?.user) {
-      const { data: membro } = await supabase
-        .from("membri_organizzazione")
-        .select("org_id")
-        .eq("user_id", userData.user.id)
-        .limit(1)
-        .maybeSingle();
-
-      if (membro?.org_id) {
-        const { data: org } = await supabase
-          .from("organizzazioni")
-          .select("slug")
-          .eq("id", membro.org_id)
-          .maybeSingle();
-        slug = org?.slug ?? null;
-      }
-    }
-
-    const dest = slug ? `/dashboard?org=${encodeURIComponent(slug)}` : "/dashboard";
-console.log("slug trovato:", slug);
-    router.push(dest);
+    router.push("/dashboard");
     router.refresh();
   }
 

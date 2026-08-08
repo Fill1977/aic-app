@@ -413,3 +413,36 @@ table.scad { width: 100%; border-collapse: collapse; }
   border-color: rgba(255, 90, 106, 0.4);
 }
 .sidebar__logout:disabled { opacity: 0.5; cursor: default; }
+
+/* --- Modale form --------------------------------------------------------- */
+.modale-bg {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(4, 8, 14, 0.72); backdrop-filter: blur(4px);
+  display: grid; place-items: center; padding: 24px;
+}
+.modale {
+  width: 100%; max-width: 620px; max-height: 90vh; overflow-y: auto;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 16px; padding: 28px 30px;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.55);
+}
+.modale h2 {
+  font-family: var(--font-display), sans-serif; font-size: 19px;
+  font-weight: 700; letter-spacing: -0.02em; margin: 0 0 20px;
+}
+.modale-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.modale-grid .field--full { grid-column: 1 / -1; }
+.modale-azioni {
+  display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px;
+}
+@media (max-width: 560px) { .modale-grid { grid-template-columns: 1fr; } }
+
+
+/* --- Sottomenu impostazioni ---------------------------------------------- */
+.submenu { flex: none; width: 190px; display: flex; flex-direction: column; gap: 2px; }
+.submenu__item {
+  padding: 9px 14px; border-radius: 7px; font-size: 13.5px; color: var(--muted);
+  cursor: pointer; transition: all 0.15s;
+}
+.submenu__item:hover { background: var(--surface); color: var(--text); }
+.submenu__item--active { background: var(--surface-2); color: var(--text); box-shadow: inset 2px 0 0 var(--ciano); }
