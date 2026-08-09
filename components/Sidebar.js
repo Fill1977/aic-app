@@ -8,7 +8,7 @@ const VOCI = [
   { k: "clienti", label: "Clienti", href: "/dashboard/clienti", pronta: true, soloStudio: true },
   { k: "sedi", label: "Sedi", href: "/dashboard/sedi", pronta: true },
   { k: "lavoratori", label: "Lavoratori", href: "/dashboard/lavoratori", pronta: true },
-  { k: "corsi", label: "Corsi", href: "/dashboard/corsi", pronta: false },
+  { k: "corsi", label: "Corsi", href: "/dashboard/corsi", pronta: true },
   { k: "visite", label: "Sorveglianza sanitaria", href: "/dashboard/visite", pronta: false },
   { k: "adempimenti", label: "Adempimenti", href: "/dashboard/adempimenti", pronta: false },
   { k: "impostazioni", label: "Impostazioni", href: "/dashboard/impostazioni", pronta: true },
@@ -25,7 +25,6 @@ export default function Sidebar({ sessione, orgQuery = "" }) {
     await supabase.auth.signOut();
     router.push("/login"); router.refresh();
   }
-  function vai(v) { if (v.pronta) router.push(v.href + orgQuery); }
 
   return (
     <aside className="sidebar">
@@ -52,7 +51,8 @@ export default function Sidebar({ sessione, orgQuery = "" }) {
           return (
             <button key={v.k}
               className={`nav__item ${attiva ? "nav__item--active" : ""} ${!pronta ? "nav__item--soon" : ""}`}
-              onClick={() => pronta && router.push(v.href + orgQuery)} title={pronta ? "" : "Non disponibile"}>
+              onClick={() => pronta && router.push(v.href + orgQuery)}
+              title={pronta ? "" : (disabilitata ? "Non disponibile" : "In arrivo")}>
               <span className="nav__dot" />
               {v.label}
               {!pronta && !v.soloStudio && <span className="nav__soon">presto</span>}

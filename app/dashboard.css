@@ -446,3 +446,23 @@ table.scad { width: 100%; border-collapse: collapse; }
 }
 .submenu__item:hover { background: var(--surface); color: var(--text); }
 .submenu__item--active { background: var(--surface-2); color: var(--text); box-shadow: inset 2px 0 0 var(--ciano); }
+
+
+
+/* --- Pannello iscritti (corsi) ------------------------------------------- */
+.col-tit { font-family: var(--font-mono),monospace; font-size:10px; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--dim); margin-bottom:8px; }
+.lista-box { border:1px solid var(--border); border-radius:9px; background:var(--bg-deep);
+  max-height:280px; overflow-y:auto; }
+.lista-vuota { padding:16px; text-align:center; color:var(--dim); font-size:13px; }
+.riga-isc { display:flex; align-items:center; justify-content:space-between;
+  padding:9px 12px; font-size:13.5px; border-bottom:1px solid var(--border); }
+.riga-isc:last-child { border-bottom:none; }
+.riga-isc--add { cursor:pointer; transition:background .12s; }
+.riga-isc--add:hover { background:var(--surface-2); }
+.x-btn { border:none; background:none; color:var(--scaduto); font-size:19px; line-height:1;
+  cursor:pointer; padding:0 4px; opacity:.7; }
+.x-btn:hover { opacity:1; }
+.plus { color:var(--ok); font-size:17px; font-weight:600; }
+
+

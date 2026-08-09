@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { salvaOrg } from "./actions";
 
-export default function ImpostazioniView({ sessione, slug }) {
+export default function DatiAziendali({ sessione, slug }) {
   const [d, setD] = useState({
     ragione_sociale: sessione.ragione_sociale || "", piva: sessione.piva || "",
     indirizzo: sessione.indirizzo || "", citta: sessione.citta || "",
@@ -31,27 +31,18 @@ export default function ImpostazioniView({ sessione, slug }) {
       <div className="modale-grid">
         <div className="field field--full"><label>Ragione sociale *</label>
           <input value={d.ragione_sociale} disabled={soloLettura} onChange={set("ragione_sociale")} /></div>
-        <div className="field"><label>P.IVA</label>
-          <input value={d.piva} disabled={soloLettura} onChange={set("piva")} /></div>
-        <div className="field"><label>Codice ATECO</label>
-          <input value={d.cod_ateco} disabled={soloLettura} onChange={set("cod_ateco")} /></div>
-        <div className="field field--full"><label>Indirizzo</label>
-          <input value={d.indirizzo} disabled={soloLettura} onChange={set("indirizzo")} /></div>
-        <div className="field"><label>Città</label>
-          <input value={d.citta} disabled={soloLettura} onChange={set("citta")} /></div>
-        <div className="field"><label>Prov</label>
-          <input value={d.prov} maxLength={2} disabled={soloLettura} onChange={set("prov")} /></div>
-        <div className="field"><label>CAP</label>
-          <input value={d.cap} disabled={soloLettura} onChange={set("cap")} /></div>
-        <div className="field"><label>Email</label>
-          <input value={d.email} disabled={soloLettura} onChange={set("email")} /></div>
-        <div className="field"><label>Telefono</label>
-          <input value={d.n_tel} disabled={soloLettura} onChange={set("n_tel")} /></div>
+        <div className="field"><label>P.IVA</label><input value={d.piva} disabled={soloLettura} onChange={set("piva")} /></div>
+        <div className="field"><label>Codice ATECO</label><input value={d.cod_ateco} disabled={soloLettura} onChange={set("cod_ateco")} /></div>
+        <div className="field field--full"><label>Indirizzo</label><input value={d.indirizzo} disabled={soloLettura} onChange={set("indirizzo")} /></div>
+        <div className="field"><label>Città</label><input value={d.citta} disabled={soloLettura} onChange={set("citta")} /></div>
+        <div className="field"><label>Prov</label><input value={d.prov} maxLength={2} disabled={soloLettura} onChange={set("prov")} /></div>
+        <div className="field"><label>CAP</label><input value={d.cap} disabled={soloLettura} onChange={set("cap")} /></div>
+        <div className="field"><label>Email</label><input value={d.email} disabled={soloLettura} onChange={set("email")} /></div>
+        <div className="field"><label>Telefono</label><input value={d.n_tel} disabled={soloLettura} onChange={set("n_tel")} /></div>
       </div>
       {!soloLettura ? (
         <button className="btn" style={{ width: "auto", padding: "11px 26px", marginTop: 18 }} onClick={salva} disabled={invio}>
-          {invio ? "Salvataggio…" : "Salva"}
-        </button>
+          {invio ? "Salvataggio…" : "Salva"}</button>
       ) : <p style={{color:"var(--dim)",fontSize:13,marginTop:14}}>Solo il titolare può modificare.</p>}
     </div>
   );
