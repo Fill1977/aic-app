@@ -25,6 +25,7 @@ export default function VisiteView({ visite, lavoratori, slug }) {
   const [supabase] = useState(() => supabaseBrowser());
   const [filtro, setFiltro] = useState("tutte");
   const [q, setQ] = useState("");
+  const [mostraArch, setMostraArch] = useState(false);
   const [modale, setModale] = useState(false);
   const [form, setForm] = useState(vuotaForm);
   const [salvando, setSalvando] = useState(false);
@@ -41,11 +42,12 @@ export default function VisiteView({ visite, lavoratori, slug }) {
   const filtrate = useMemo(() => {
     const t = q.trim().toLowerCase();
     return righe.filter((r) => {
+      if (!mostraArch && r.archiviata) return false;
       if (filtro !== "tutte" && r.stato.k !== filtro) return false;
       if (!t) return true;
       return `${r.nome} ${r.cognome} ${r.azienda || ""} ${r.mansione || ""}`.toLowerCase().includes(t);
     });
-  }, [righe, filtro, q]);
+  }, [righe, filtro, q, mostraArch]);
 
   function apri(v) {
     setErrore("");
@@ -98,6 +100,7 @@ export default function VisiteView({ visite, lavoratori, slug }) {
             {f === "tutte" ? "Tutte" : f === "scaduto" ? "Scadute" : f === "imminente" ? "In scadenza" : "Valide"}
           </button>
         ))}
+        <button className={`chip ${mostraArch ? "chip--on" : ""}`} onClick={() => setMostraArch((v) => !v)}>Mostra archiviate</button>
         <input className="search" placeholder="Cerca nominativo, azienda…" value={q} onChange={(e) => setQ(e.target.value)} />
         <button className="chip chip--on" onClick={() => apri(null)}><span className="plus">＋</span>&nbsp;Nuova visita</button>
       </div>
@@ -113,9 +116,9 @@ export default function VisiteView({ visite, lavoratori, slug }) {
             </tr></thead>
             <tbody>
               {filtrate.map((r) => (
-                <tr key={r.id}>
+                <tr key={r.id} style={r.archiviata ? { opacity: 0.55 } : undefined}>
                   <td>
-                    <div className="cell-nome">{r.cognome} {r.nome}</div>
+                    <div className="cell-nome">{r.cognome} {r.nome}{r.archiviata && <span className="nav__soon" style={{ marginLeft: 6 }}>archiviata</span>}</div>
                     {r.mansione && <div className="cell-sub">{r.mansione}</div>}
                   </td>
                   <td className="cell-hide-sm cell-azienda">{r.azienda || "—"}</td>

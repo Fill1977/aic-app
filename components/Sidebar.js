@@ -10,7 +10,7 @@ const VOCI = [
   { k: "lavoratori", label: "Lavoratori", href: "/dashboard/lavoratori", pronta: true },
   { k: "corsi", label: "Corsi", href: "/dashboard/corsi", pronta: true },
   { k: "visite", label: "Sorveglianza sanitaria", href: "/dashboard/visite", pronta: true },
-  { k: "adempimenti", label: "Adempimenti", href: "/dashboard/adempimenti", pronta: false },
+  { k: "adempimenti", label: "Adempimenti", href: "/dashboard/adempimenti", pronta: true },
   { k: "impostazioni", label: "Impostazioni", href: "/dashboard/impostazioni", pronta: true },
 ];
 
