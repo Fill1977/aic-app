@@ -16,7 +16,7 @@ export default async function CorsiPage({ searchParams }) {
 
   const { supabase, sessione, slug, orgQuery } = ctx;
   const [{ data: corsi }, { data: tipologie }, { data: periodicita }, { data: lavoratori }] = await Promise.all([
-    supabase.rpc("corsi_slug", { p_slug: slug }),
+    supabase.rpc("corsi_slug", { p_slug: slug, p_includi_archiviate: true }),
     supabase.rpc("tipologie_slug", { p_slug: slug }),
     supabase.rpc("periodicita_slug", { p_slug: slug }),
     supabase.rpc("lavoratori_slug", { p_slug: slug }),

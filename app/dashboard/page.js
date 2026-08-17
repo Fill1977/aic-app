@@ -25,7 +25,7 @@ export default async function DashboardPage({ searchParams }) {
     return <Gate titolo="Accesso non consentito" messaggio="Verifica di essere membro di questa organizzazione." />;
 
   const { supabase, sessione, slug, orgQuery } = ctx;
-  const { data: righe, error } = await supabase.rpc("scadenzario_slug", { p_slug: slug });
+  const { data: righe, error } = await supabase.rpc("scadenzario_unificato_slug", { p_slug: slug });
 
   return (
     <div className="shell">
@@ -35,7 +35,7 @@ export default async function DashboardPage({ searchParams }) {
         <div className="content">
           {error
             ? <div className="vuoto"><h3>Impossibile caricare lo scadenzario</h3><p>Riprova.</p></div>
-            : <Scadenzario righe={righe || []} />}
+            : <Scadenzario righe={righe || []} slug={slug} />}
         </div>
       </div>
     </div>

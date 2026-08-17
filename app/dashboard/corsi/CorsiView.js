@@ -1,22 +1,47 @@
 "use client";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { salvaCorso, eliminaCorso, iscrivi, disiscrivi, caricaIscritti } from "./actions";
 
 const VUOTO = { id:null, id_tipologia:"", cod_corso:"", docente:"", societa:"", sede:"", data_fine_corso:"", note:"" };
-
+const SOGLIA = 90;
 function fmtData(d){ if(!d) return "—"; return new Date(d).toLocaleDateString("it-IT",{day:"2-digit",month:"short",year:"numeric"}); }
 
+function statoDi(c){
+  if (c.illimitato || !c.data_scadenza) return { k:"illim", label:"illimitato" };
+  const oggi=new Date(); oggi.setHours(0,0,0,0);
+  const g=Math.round((new Date(c.data_scadenza)-oggi)/86400000);
+  if (g<0) return { k:"scaduto", label:`scaduto da ${-g}g` };
+  if (g<=SOGLIA) return { k:"imminente", label:`tra ${g}g` };
+  return { k:"ok", label:"valido" };
+}
+
 export default function CorsiView({ corsi, tipologie, periodicita, lavoratori, slug, tipoOrg }) {
-  const [modale, setModale] = useState(null);       // form corso
-  const [pannello, setPannello] = useState(null);   // {corso, iscritti} gestione iscritti
+  const [modale, setModale] = useState(null);
+  const [pannello, setPannello] = useState(null);
   const [q, setQ] = useState("");
+  const [filtro, setFiltro] = useState("tutti");
+  const [mostraArch, setMostraArch] = useState(false);
   const [errore, setErrore] = useState("");
   const [invio, setInvio] = useState(false);
 
-  const filtrati = corsi.filter((c) => {
-    if (!q.trim()) return true;
-    return `${c.tipologia} ${c.docente||""} ${c.cod_corso||""} ${c.sede||""}`.toLowerCase().includes(q.toLowerCase());
-  });
+  const righe = useMemo(()=>corsi.map((c)=>({ ...c, stato: statoDi(c) })), [corsi]);
+  const kpi = useMemo(()=>{
+    const k={ scaduto:0, imminente:0, ok:0, illim:0 };
+    righe.forEach((r)=>{ k[r.stato.k]++; });
+    return k;
+  }, [righe]);
+
+  const filtrati = useMemo(()=>{
+    const t=q.trim().toLowerCase();
+    return righe.filter((c)=>{
+      if(!mostraArch && c.archiviata) return false;
+      if(filtro==="scaduti" && c.stato.k!=="scaduto") return false;
+      if(filtro==="scadenza" && c.stato.k!=="imminente") return false;
+      if(filtro==="validi" && !["ok","illim"].includes(c.stato.k)) return false;
+      if(t && !`${c.tipologia} ${c.docente||""} ${c.cod_corso||""} ${c.sede||""}`.toLowerCase().includes(t)) return false;
+      return true;
+    });
+  }, [righe, filtro, q, mostraArch]);
 
   function apri(c) {
     setErrore("");
@@ -26,7 +51,6 @@ export default function CorsiView({ corsi, tipologie, periodicita, lavoratori, s
     p.id = c.id;
     setModale(p);
   }
-
   async function salva() {
     setErrore("");
     if (!modale.id_tipologia) { setErrore("Seleziona la tipologia di corso."); return; }
@@ -36,15 +60,12 @@ export default function CorsiView({ corsi, tipologie, periodicita, lavoratori, s
     if (res.errore) { setErrore(res.errore); return; }
     window.location.reload();
   }
-
   async function elimina(c) {
     if (!confirm(`Eliminare il corso "${c.tipologia}" del ${fmtData(c.data_fine_corso)}?`)) return;
     const res = await eliminaCorso(slug, c.id);
     if (res.errore) { alert(res.errore); return; }
     window.location.reload();
   }
-
-  // --- gestione iscritti ---
   async function apriIscritti(corso) {
     const res = await caricaIscritti(slug, corso.id);
     setPannello({ corso, iscritti: res.iscritti });
@@ -61,16 +82,24 @@ export default function CorsiView({ corsi, tipologie, periodicita, lavoratori, s
     const r = await caricaIscritti(slug, pannello.corso.id);
     setPannello({ ...pannello, iscritti: r.iscritti });
   }
-
   const idIscritti = new Set((pannello?.iscritti||[]).map((i)=>i.lavoratore_id));
   const disponibili = lavoratori.filter((l)=>!idIscritti.has(l.id));
 
-
   return (
     <>
+      <div className="riepilogo">
+        <div className="kpi kpi--scaduto"><div className="kpi__num">{kpi.scaduto}</div><div className="kpi__label">Scaduti</div></div>
+        <div className="kpi kpi--imminente"><div className="kpi__num">{kpi.imminente}</div><div className="kpi__label">In scadenza entro {SOGLIA} giorni</div></div>
+        <div className="kpi kpi--ok"><div className="kpi__num">{kpi.ok + kpi.illim}</div><div className="kpi__label">In regola</div></div>
+      </div>
+
       <div className="filtri">
+        {[["tutti","Tutti"],["scaduti","Scaduti"],["scadenza","In scadenza"],["validi","Validi"]].map(([k,label])=>(
+          <button key={k} className={`chip ${filtro===k?"chip--on":""}`} onClick={()=>setFiltro(k)}>{label}</button>
+        ))}
+        <button className={`chip ${mostraArch?"chip--on":""}`} onClick={()=>setMostraArch((v)=>!v)}>Mostra archiviate</button>
         <input className="search" placeholder="Cerca corso, docente, sede…" value={q} onChange={(e)=>setQ(e.target.value)} />
-        <button className="chip chip--on" style={{cursor:"pointer"}} onClick={()=>apri(null)}>+ Nuovo corso</button>
+        <button className="chip chip--on" style={{cursor:"pointer"}} onClick={()=>apri(null)}><span className="plus">＋</span>&nbsp;Nuovo corso</button>
       </div>
 
       {filtrati.length===0 ? (
@@ -81,20 +110,23 @@ export default function CorsiView({ corsi, tipologie, periodicita, lavoratori, s
             <thead><tr>
               <th>Corso</th><th className="cell-hide-sm">Docente</th>
               <th style={{textAlign:"center"}}>Data fine</th>
+              <th style={{textAlign:"right"}}>Scadenza</th>
               <th style={{textAlign:"center"}}>Iscritti</th>
               <th style={{textAlign:"right"}}>Azioni</th>
             </tr></thead>
             <tbody>
               {filtrati.map((c)=>(
-                <tr key={c.id}>
-                  <td><div className="cell-nome">{c.tipologia}</div>
-                    {c.cod_corso && <div className="cell-sub">{c.cod_corso}</div>}</td>
+                <tr key={c.id} style={c.archiviata?{opacity:0.55}:undefined}>
+                  <td><div className="cell-nome">{c.tipologia}{c.archiviata && <span className="nav__soon" style={{marginLeft:6}}>archiviata</span>}</div>
+                    {(c.cod_corso||c.sede) && <div className="cell-sub">{[c.cod_corso,c.sede].filter(Boolean).join(" · ")}</div>}</td>
                   <td className="cell-hide-sm"><span className="cell-azienda">{c.docente||"—"}</span></td>
                   <td style={{textAlign:"center"}}><span className="cell-azienda">{fmtData(c.data_fine_corso)}</span></td>
+                  <td className="cell-scad">
+                    <span className={`pill pill--${c.stato.k==="illim"?"ok":c.stato.k}`}><span className="pill__dot" />{c.stato.label}</span>
+                    {c.data_scadenza && <div className="cell-sub" style={{textAlign:"right"}}>{fmtData(c.data_scadenza)}</div>}
+                  </td>
                   <td style={{textAlign:"center"}}>
-                    <button className="chip" style={{cursor:"pointer"}} onClick={()=>apriIscritti(c)}>
-                      {c.n_iscritti} iscritti
-                    </button>
+                    <button className="chip" style={{cursor:"pointer"}} onClick={()=>apriIscritti(c)}>{c.n_iscritti} iscritti</button>
                   </td>
                   <td style={{textAlign:"right",whiteSpace:"nowrap"}}>
                     <button className="chip" style={{cursor:"pointer"}} onClick={()=>apri(c)}>Modifica</button>
@@ -107,7 +139,6 @@ export default function CorsiView({ corsi, tipologie, periodicita, lavoratori, s
         </div>
       )}
 
-      {/* MODALE FORM CORSO */}
       {modale && (
         <div className="modale-bg" onClick={(e)=>e.target===e.currentTarget&&setModale(null)}>
           <div className="modale">
@@ -141,7 +172,6 @@ export default function CorsiView({ corsi, tipologie, periodicita, lavoratori, s
         </div>
       )}
 
-      {/* PANNELLO ISCRITTI */}
       {pannello && (
         <div className="modale-bg" onClick={(e)=>e.target===e.currentTarget&&setPannello(null)}>
           <div className="modale" style={{maxWidth:680}}>
@@ -149,7 +179,6 @@ export default function CorsiView({ corsi, tipologie, periodicita, lavoratori, s
             <div style={{fontSize:12.5,color:"var(--dim)",marginBottom:18}}>
               {fmtData(pannello.corso.data_fine_corso)} · {pannello.corso.docente||"docente n.d."}
             </div>
-
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:20}}>
               <div>
                 <div className="col-tit">Iscritti ({pannello.iscritti.length})</div>
@@ -176,14 +205,12 @@ export default function CorsiView({ corsi, tipologie, periodicita, lavoratori, s
                 </div>
               </div>
             </div>
-
             <div className="modale-azioni">
               <button className="chip" style={{cursor:"pointer"}} onClick={()=>{ setPannello(null); window.location.reload(); }}>Chiudi</button>
             </div>
           </div>
         </div>
       )}
-
     </>
   );
 }
