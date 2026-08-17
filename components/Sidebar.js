@@ -26,6 +26,10 @@ export default function Sidebar({ sessione, orgQuery = "" }) {
     router.push("/login"); router.refresh();
   }
 
+  const inTrial = sessione.stato_org === "trial";
+  const gg = sessione.giorni_trial;
+  const mostraTrial = inTrial && !sessione.readonly && gg != null && gg <= 3;
+
   return (
     <aside className="sidebar">
       <div className="sidebar__brand">
@@ -43,6 +47,20 @@ export default function Sidebar({ sessione, orgQuery = "" }) {
           <div className="sidebar__tipo">{sessione.tipo === "studio" ? "Studio" : "Azienda"}</div>
         </div>
       </div>
+
+      {sessione.readonly && (
+        <div style={{ margin: "10px 12px", padding: "10px 12px", borderRadius: 10,
+          background: "#fdecec", border: "1px solid #f3b4b4", color: "#8a1f1f", fontSize: 12.5, lineHeight: 1.35 }}>
+          <strong>Prova scaduta.</strong> Aggiungi un metodo di pagamento per continuare a usare tutte le funzioni.
+        </div>
+      )}
+      {mostraTrial && (
+        <div style={{ margin: "10px 12px", padding: "8px 12px", borderRadius: 10,
+          background: "#fff6e5", border: "1px solid #f0d38a", color: "#7a5b12", fontSize: 12.5 }}>
+          Prova gratuita: <strong>{gg} {gg === 1 ? "giorno" : "giorni"}</strong> {gg === 1 ? "rimasto" : "rimasti"}.
+        </div>
+      )}
+
       <nav className="nav">
         {VOCI.map((v) => {
           const disabilitata = v.soloStudio && sessione.tipo === "azienda";
